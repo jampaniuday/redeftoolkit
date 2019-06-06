@@ -1,0 +1,958 @@
+Table redefinition return code is 0
+ 
+SQL*Plus standard input file follows.
+ 
+SQL*Plus standard output file follows.
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Nov 10 16:30:09 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+@> Connected.
+
+'ORACLESIDFORTHISPARTITIONINGEXERCISEIS'||SID
+-------------------------------------------------------------------------------------
+Oracle SID for this partitioning exercise is 42
+
+SYS@orcl> set feedback on;
+SYS@orcl> set lines 175;
+SYS@orcl> set long 65536;
+SYS@orcl> set pages 50;
+SYS@orcl> set serveroutput on size 1000000;
+SYS@orcl> set time on;
+16:30:09 SYS@orcl> set timing on;
+16:30:09 SYS@orcl> set verify on;
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> ALTER SESSION ENABLE PARALLEL DML;
+
+Session altered.
+
+Elapsed: 00:00:00.01
+16:30:09 SYS@orcl> ALTER SESSION FORCE PARALLEL DML PARALLEL &&v_job_dop;
+old   1: ALTER SESSION FORCE PARALLEL DML PARALLEL &&v_job_dop
+new   1: ALTER SESSION FORCE PARALLEL DML PARALLEL 4
+
+Session altered.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> ALTER SESSION FORCE PARALLEL QUERY PARALLEL &&v_job_dop;
+old   1: ALTER SESSION FORCE PARALLEL QUERY PARALLEL &&v_job_dop
+new   1: ALTER SESSION FORCE PARALLEL QUERY PARALLEL 4
+
+Session altered.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> alter session enable resumable timeout 43000 name 'reorg &&v_table_name';
+old   1: alter session enable resumable timeout 43000 name 'reorg &&v_table_name'
+new   1: alter session enable resumable timeout 43000 name 'reorg PARTITION1'
+
+Session altered.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> alter session set nls_date_format='mm/dd/yyyy hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> exec DBMS_APPLICATION_INFO.set_module(module_name => 'Partition table &&v_table_name', action_name => '');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+16:30:09 SYS@orcl> exec DBMS_APPLICATION_INFO.set_action(action_name => '0000_initialization');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> whenever sqlerror exit 1
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> 16:30:09 SYS@orcl> exec dbms_redefinition.abort_redef_table -
+16:30:09 > ( -
+16:30:09 > UNAME	   => '&&v_table_owner', -
+16:30:09 > ORIG_TABLE => '&&v_table_name', -
+16:30:09 > INT_TABLE  => '&&v_table_int_name' -
+16:30:09 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.12
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> 16:30:09 SYS@orcl> REM 001_can_redef_table
+16:30:09 SYS@orcl> REM Determine if the table is able to participate in DBMS_REDEFINITION
+16:30:09 SYS@orcl> REM In reality, should have been before now
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> EXEC DBMS_REDEFINITION.CAN_REDEF_TABLE -
+16:30:09 > ( -
+16:30:09 > '&&v_table_owner' , -
+16:30:09 > '&&v_table_name' , -
+16:30:09 > options_flag => dbms_redefinition.CONS_USE_ROWID -
+16:30:09 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 16:30:09 SYS@orcl> REM 999_pre_post_audit
+16:30:09 SYS@orcl> REM Display pre and post audit information
+16:30:09 SYS@orcl> REM With modifications, execute the routine before then after
+16:30:09 SYS@orcl> REM the redefinition to help validate successful redefinition
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> set lines 160;
+16:30:09 SYS@orcl> set pages 48;
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 OWNER,
+16:30:09   3  	 TABLE_NAME,
+16:30:09   4  	 STATUS,
+16:30:09   5  	 PCT_FREE,
+16:30:09   6  	 PCT_USED,
+16:30:09   7  	 PCT_INCREASE,
+16:30:09   8  	 NUM_ROWS,
+16:30:09   9  	 BLOCKS,
+16:30:09  10  	 AVG_SPACE,
+16:30:09  11  	 CHAIN_CNT,
+16:30:09  12  	 AVG_ROW_LEN,
+16:30:09  13  	 DEGREE,
+16:30:09  14  	 LAST_ANALYZED,
+16:30:09  15  	 PARTITIONED,
+16:30:09  16  	 BUFFER_POOL,
+16:30:09  17  	 ROW_MOVEMENT,
+16:30:09  18  	 COMPRESSION
+16:30:09  19  from
+16:30:09  20  	 dba_tables
+16:30:09  21  where
+16:30:09  22  	 owner='&&v_table_owner' and
+16:30:09  23  	 table_name='&&v_table_name'
+16:30:09  24  /
+old  22:    owner='&&v_table_owner' and
+new  22:    owner='HR' and
+old  23:    table_name='&&v_table_name'
+new  23:    table_name='PARTITION1'
+
+OWNER			       TABLE_NAME		      STATUS	 PCT_FREE   PCT_USED PCT_INCREASE   NUM_ROWS	 BLOCKS  AVG_SPACE  CHAIN_CNT
+------------------------------ ------------------------------ -------- ---------- ---------- ------------ ---------- ---------- ---------- ----------
+AVG_ROW_LEN DEGREE				     LAST_ANALYZED	 PAR BUFFER_ ROW_MOVE COMPRESS
+----------- ---------------------------------------- ------------------- --- ------- -------- --------
+HR			       PARTITION1		      VALID						  14	     56 	 0	    0
+	 30	     1				     11/10/2011 16:07:13 YES DEFAULT ENABLED
+
+
+1 row selected.
+
+Elapsed: 00:00:00.01
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 TABLE_OWNER,
+16:30:09   3  	 TABLE_NAME,
+16:30:09   4  	 PARTITION_NAME,
+16:30:09   5  	 INSERTS,
+16:30:09   6  	 UPDATES,
+16:30:09   7  	 DELETES,
+16:30:09   8  	 TIMESTAMP
+16:30:09   9  from
+16:30:09  10  	 dba_tab_modifications
+16:30:09  11  where
+16:30:09  12  	 table_owner='&&v_table_owner' and
+16:30:09  13  	 table_name='&&v_table_name'
+16:30:09  14  /
+old  12:    table_owner='&&v_table_owner' and
+new  12:    table_owner='HR' and
+old  13:    table_name='&&v_table_name'
+new  13:    table_name='PARTITION1'
+
+no rows selected
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 TABLE_OWNER,
+16:30:09   3  	 TABLE_NAME,
+16:30:09   4  	 TABLE_TYPE,
+16:30:09   5  	 OWNER,
+16:30:09   6  	 INDEX_NAME,
+16:30:09   7  	 INDEX_TYPE,
+16:30:09   8  	 UNIQUENESS,
+16:30:09   9  	 COMPRESSION,
+16:30:09  10  	 TABLESPACE_NAME,
+16:30:09  11  	 PCT_INCREASE,
+16:30:09  12  	 PCT_FREE,
+16:30:09  13  	 LOGGING,
+16:30:09  14  	 BLEVEL,
+16:30:09  15  	 LEAF_BLOCKS,
+16:30:09  16  	 DISTINCT_KEYS,
+16:30:09  17  	 AVG_LEAF_BLOCKS_PER_KEY,
+16:30:09  18  	 AVG_DATA_BLOCKS_PER_KEY,
+16:30:09  19  	 CLUSTERING_FACTOR,
+16:30:09  20  	 STATUS,
+16:30:09  21  	 NUM_ROWS,
+16:30:09  22  	 LAST_ANALYZED,
+16:30:09  23  	 DEGREE,
+16:30:09  24  	 PARTITIONED,
+16:30:09  25  	 BUFFER_POOL,
+16:30:09  26  	 USER_STATS
+16:30:09  27  from
+16:30:09  28  	 dba_indexes
+16:30:09  29  where
+16:30:09  30  	 table_owner='&&v_table_owner' and
+16:30:09  31  	 table_name='&&v_table_name'
+16:30:09  32  order by
+16:30:09  33  	 UNIQUENESS desc,
+16:30:09  34  	 TABLE_OWNER,
+16:30:09  35  	 TABLE_NAME,
+16:30:09  36  	 OWNER,
+16:30:09  37  	 INDEX_NAME
+16:30:09  38  /
+old  30:    table_owner='&&v_table_owner' and
+new  30:    table_owner='HR' and
+old  31:    table_name='&&v_table_name'
+new  31:    table_name='PARTITION1'
+
+TABLE_OWNER		       TABLE_NAME		      TABLE_TYPE  OWNER 			 INDEX_NAME
+------------------------------ ------------------------------ ----------- ------------------------------ ------------------------------
+INDEX_TYPE		    UNIQUENES COMPRESS TABLESPACE_NAME		      PCT_INCREASE   PCT_FREE LOG     BLEVEL LEAF_BLOCKS DISTINCT_KEYS
+--------------------------- --------- -------- ------------------------------ ------------ ---------- --- ---------- ----------- -------------
+AVG_LEAF_BLOCKS_PER_KEY AVG_DATA_BLOCKS_PER_KEY CLUSTERING_FACTOR STATUS     NUM_ROWS LAST_ANALYZED	  DEGREE				   PAR BUFFER_
+----------------------- ----------------------- ----------------- -------- ---------- ------------------- ---------------------------------------- --- -------
+USE
+---
+HR			       PARTITION1		      TABLE	  HR				 PARTITION1_IDX
+NORMAL			    NONUNIQUE DISABLED									   0	      14	     1
+		      1 		      1 	       14 N/A		   14 11/10/2011 16:07:12 1					   YES DEFAULT
+NO
+
+
+1 row selected.
+
+Elapsed: 00:00:00.00
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 OWNER,
+16:30:09   3  	 SEGMENT_NAME,
+16:30:09   4  	 PARTITION_NAME,
+16:30:09   5  	 SEGMENT_TYPE,
+16:30:09   6  	 TABLESPACE_NAME,
+16:30:09   7  	 BUFFER_POOL,
+16:30:09   8  	 BYTES/1048576 BYTES_MB
+16:30:09   9  from
+16:30:09  10  	 dba_segments
+16:30:09  11  where
+16:30:09  12  	 owner='&&v_table_owner' and
+16:30:09  13  	(segment_name='&&v_table_name' or
+16:30:09  14  	 segment_name in
+16:30:09  15  	   (select index_name
+16:30:09  16  	    from dba_indexes
+16:30:09  17  	    where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:09  18  	)
+16:30:09  19  order by
+16:30:09  20  	 OWNER,
+16:30:09  21  	 SEGMENT_NAME,
+16:30:09  22  	 PARTITION_NAME
+16:30:09  23  /
+old  12:    owner='&&v_table_owner' and
+new  12:    owner='HR' and
+old  13:   (segment_name='&&v_table_name' or
+new  13:   (segment_name='PARTITION1' or
+old  17:       where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+new  17:       where table_owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+HR			       PARTITION1									 SALES_1
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_10
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_11
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_12
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_13
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_14
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_15
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_2
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_3
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_4
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_5
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_6
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_7
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_8
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_9
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_FUTURE
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_1
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_10
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_11
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_12
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_13
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_14
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_15
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_2
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_3
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_4
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_5
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_6
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_7
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+
+HR			       PARTITION1_IDX									 SALES_8
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_9
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_FUTURE
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+
+32 rows selected.
+
+Elapsed: 00:00:00.27
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 OWNER,
+16:30:09   3  	 SEGMENT_NAME,
+16:30:09   4  	 CEIL(SUM(BYTES)/1048576) BYTES_MB
+16:30:09   5  from
+16:30:09   6  	 dba_segments
+16:30:09   7  where
+16:30:09   8  	 owner='&&v_table_owner' and
+16:30:09   9  	(segment_name='&&v_table_name' or
+16:30:09  10  	 segment_name in
+16:30:09  11  	   (select index_name
+16:30:09  12  	    from dba_indexes
+16:30:09  13  	    where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:09  14  	)
+16:30:09  15  group by rollup
+16:30:09  16  	(OWNER,
+16:30:09  17  	 SEGMENT_NAME)
+16:30:09  18  order by
+16:30:09  19  	 OWNER,
+16:30:09  20  	 SEGMENT_NAME
+16:30:09  21  /
+old   8:    owner='&&v_table_owner' and
+new   8:    owner='HR' and
+old   9:   (segment_name='&&v_table_name' or
+new   9:   (segment_name='PARTITION1' or
+old  13:       where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+new  13:       where table_owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									   BYTES_MB
+------------------------------ --------------------------------------------------------------------------------- ----------
+HR			       PARTITION1										  1
+HR			       PARTITION1_IDX										  1
+HR															  2
+															  2
+
+4 rows selected.
+
+Elapsed: 00:00:00.06
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> select
+16:30:09   2  	 OWNER,
+16:30:09   3  	 SEGMENT_NAME,
+16:30:09   4  	 CEIL(SUM(BYTES)/1048576) BYTES_MB
+16:30:09   5  from
+16:30:09   6  	 dba_segments
+16:30:09   7  where
+16:30:09   8  	 owner='&&v_table_owner' and
+16:30:09   9  	(segment_name='&&v_table_name' or
+16:30:09  10  	 segment_name in
+16:30:09  11  	   (select segment_name
+16:30:09  12  	    from dba_lobs
+16:30:09  13  	    where owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:09  14  	)
+16:30:09  15  group by rollup
+16:30:09  16  	(OWNER,
+16:30:09  17  	 SEGMENT_NAME)
+16:30:09  18  order by
+16:30:09  19  	 OWNER,
+16:30:09  20  	 SEGMENT_NAME
+16:30:09  21  /
+old   8:    owner='&&v_table_owner' and
+new   8:    owner='HR' and
+old   9:   (segment_name='&&v_table_name' or
+new   9:   (segment_name='PARTITION1' or
+old  13:       where owner='&&v_table_owner' and table_name='&&v_table_name')
+new  13:       where owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									   BYTES_MB
+------------------------------ --------------------------------------------------------------------------------- ----------
+HR			       PARTITION1										  1
+HR															  1
+															  1
+
+3 rows selected.
+
+Elapsed: 00:00:00.13
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> 16:30:09 SYS@orcl> 16:30:09 SYS@orcl> REM 004_start_redef_table
+16:30:09 SYS@orcl> REM Start the redefinition process
+16:30:09 SYS@orcl> REM
+16:30:09 SYS@orcl> 
+16:30:09 SYS@orcl> EXEC DBMS_REDEFINITION.START_REDEF_TABLE -
+16:30:09 > ( -
+16:30:09 > UNAME => '&&v_table_owner', -
+16:30:09 > ORIG_TABLE => '&&v_table_name', -
+16:30:09 > INT_TABLE  => '&&v_table_int_name' , -
+16:30:09 > options_flag => dbms_redefinition.CONS_USE_ROWID -
+16:30:09 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.45
+16:30:11 SYS@orcl> 
+16:30:11 SYS@orcl> 16:30:11 SYS@orcl> CREATE INDEX "HR"."PARTITION1_IDX_INT" ON "HR"."PARTITION1_INT"
+16:30:11   2  	(
+16:30:11   3  	  "CUSTOMER_ID"
+16:30:11   4  	)
+16:30:11   5  	PCTFREE 10 INITRANS 2 MAXTRANS 255 STORAGE
+16:30:11   6  	(
+16:30:11   7  	  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT
+16:30:11   8  	)
+16:30:11   9  	LOCAL
+16:30:11  10  /
+
+Index created.
+
+Elapsed: 00:00:00.10
+16:30:11 SYS@orcl> 
+16:30:11 SYS@orcl> 
+16:30:11 SYS@orcl> ALTER INDEX "HR"."PARTITION1_IDX" NOPARALLEL;
+
+Index altered.
+
+Elapsed: 00:00:00.02
+16:30:11 SYS@orcl> 
+16:30:11 SYS@orcl> 16:30:11 SYS@orcl> EXEC DBMS_REDEFINITION.SYNC_INTERIM_TABLE -
+16:30:11 > ( -
+16:30:11 > UNAME => '&&v_table_owner', -
+16:30:11 > ORIG_TABLE => '&&v_table_name', -
+16:30:11 > INT_TABLE  => '&&v_table_int_name' -
+16:30:11 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.14
+16:30:11 SYS@orcl> 
+16:30:11 SYS@orcl> 16:30:11 SYS@orcl> exec dbms_stats.gather_table_stats -
+16:30:11 > ( -
+16:30:11 > ownname=>'&&v_table_owner', -
+16:30:11 > tabname=>'&&v_table_int_name', -
+16:30:11 > cascade=>false, -
+16:30:11 > granularity=>'ALL', -
+16:30:11 > estimate_percent=>3, -
+16:30:11 > degree => &&v_job_dop, -
+16:30:11 > method_opt=>'FOR ALL INDEXED COLUMNS SIZE 1' -
+16:30:11 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.55
+16:30:12 SYS@orcl> 
+16:30:12 SYS@orcl> 16:30:12 SYS@orcl> EXEC DBMS_REDEFINITION.SYNC_INTERIM_TABLE -
+16:30:12 > ( -
+16:30:12 > UNAME => '&&v_table_owner', -
+16:30:12 > ORIG_TABLE => '&&v_table_name', -
+16:30:12 > INT_TABLE  => '&&v_table_int_name' -
+16:30:12 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.10
+16:30:12 SYS@orcl> 
+16:30:12 SYS@orcl> 16:30:12 SYS@orcl> exec dbms_redefinition.finish_redef_table -
+16:30:12 > ( -
+16:30:12 > UNAME	   => '&&v_table_owner', -
+16:30:12 > ORIG_TABLE => '&&v_table_name', -
+16:30:12 > INT_TABLE  => '&&v_table_int_name' -
+16:30:12 > );
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.74
+16:30:12 SYS@orcl> 
+16:30:12 SYS@orcl> 16:30:12 SYS@orcl> 16:30:12 SYS@orcl> 
+16:30:12 SYS@orcl> drop index "HR"."PARTITION1_IDX";
+
+Index dropped.
+
+Elapsed: 00:00:00.68
+16:30:13 SYS@orcl> 16:30:13 SYS@orcl> alter session set current_schema=&&v_table_owner;
+old   1: alter session set current_schema=&&v_table_owner
+new   1: alter session set current_schema=HR
+
+Session altered.
+
+Elapsed: 00:00:00.00
+16:30:13 SYS@orcl> whenever sqlerror continue
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> alter index "PARTITION1_IDX_INT" rename to "PARTITION1_IDX";
+
+Index altered.
+
+Elapsed: 00:00:00.09
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> alter session set current_schema=sys;
+
+Session altered.
+
+Elapsed: 00:00:00.01
+16:30:13 SYS@orcl> whenever sqlerror exit 1
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> 16:30:13 SYS@orcl> REM 999_pre_post_audit
+16:30:13 SYS@orcl> REM Display pre and post audit information
+16:30:13 SYS@orcl> REM With modifications, execute the routine before then after
+16:30:13 SYS@orcl> REM the redefinition to help validate successful redefinition
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> set lines 160;
+16:30:13 SYS@orcl> set pages 48;
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> select
+16:30:13   2  	 OWNER,
+16:30:13   3  	 TABLE_NAME,
+16:30:13   4  	 STATUS,
+16:30:13   5  	 PCT_FREE,
+16:30:13   6  	 PCT_USED,
+16:30:13   7  	 PCT_INCREASE,
+16:30:13   8  	 NUM_ROWS,
+16:30:13   9  	 BLOCKS,
+16:30:13  10  	 AVG_SPACE,
+16:30:13  11  	 CHAIN_CNT,
+16:30:13  12  	 AVG_ROW_LEN,
+16:30:13  13  	 DEGREE,
+16:30:13  14  	 LAST_ANALYZED,
+16:30:13  15  	 PARTITIONED,
+16:30:13  16  	 BUFFER_POOL,
+16:30:13  17  	 ROW_MOVEMENT,
+16:30:13  18  	 COMPRESSION
+16:30:13  19  from
+16:30:13  20  	 dba_tables
+16:30:13  21  where
+16:30:13  22  	 owner='&&v_table_owner' and
+16:30:13  23  	 table_name='&&v_table_name'
+16:30:13  24  /
+old  22:    owner='&&v_table_owner' and
+new  22:    owner='HR' and
+old  23:    table_name='&&v_table_name'
+new  23:    table_name='PARTITION1'
+
+OWNER			       TABLE_NAME		      STATUS	 PCT_FREE   PCT_USED PCT_INCREASE   NUM_ROWS	 BLOCKS  AVG_SPACE  CHAIN_CNT
+------------------------------ ------------------------------ -------- ---------- ---------- ------------ ---------- ---------- ---------- ----------
+AVG_ROW_LEN DEGREE				     LAST_ANALYZED	 PAR BUFFER_ ROW_MOVE COMPRESS
+----------- ---------------------------------------- ------------------- --- ------- -------- --------
+HR			       PARTITION1		      VALID						  19	     76 	 0	    0
+	 30	     1				     11/10/2011 16:30:11 YES DEFAULT DISABLED
+
+
+1 row selected.
+
+Elapsed: 00:00:00.03
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> select
+16:30:13   2  	 TABLE_OWNER,
+16:30:13   3  	 TABLE_NAME,
+16:30:13   4  	 PARTITION_NAME,
+16:30:13   5  	 INSERTS,
+16:30:13   6  	 UPDATES,
+16:30:13   7  	 DELETES,
+16:30:13   8  	 TIMESTAMP
+16:30:13   9  from
+16:30:13  10  	 dba_tab_modifications
+16:30:13  11  where
+16:30:13  12  	 table_owner='&&v_table_owner' and
+16:30:13  13  	 table_name='&&v_table_name'
+16:30:13  14  /
+old  12:    table_owner='&&v_table_owner' and
+new  12:    table_owner='HR' and
+old  13:    table_name='&&v_table_name'
+new  13:    table_name='PARTITION1'
+
+no rows selected
+
+Elapsed: 00:00:00.05
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> select
+16:30:13   2  	 TABLE_OWNER,
+16:30:13   3  	 TABLE_NAME,
+16:30:13   4  	 TABLE_TYPE,
+16:30:13   5  	 OWNER,
+16:30:13   6  	 INDEX_NAME,
+16:30:13   7  	 INDEX_TYPE,
+16:30:13   8  	 UNIQUENESS,
+16:30:13   9  	 COMPRESSION,
+16:30:13  10  	 TABLESPACE_NAME,
+16:30:13  11  	 PCT_INCREASE,
+16:30:13  12  	 PCT_FREE,
+16:30:13  13  	 LOGGING,
+16:30:13  14  	 BLEVEL,
+16:30:13  15  	 LEAF_BLOCKS,
+16:30:13  16  	 DISTINCT_KEYS,
+16:30:13  17  	 AVG_LEAF_BLOCKS_PER_KEY,
+16:30:13  18  	 AVG_DATA_BLOCKS_PER_KEY,
+16:30:13  19  	 CLUSTERING_FACTOR,
+16:30:13  20  	 STATUS,
+16:30:13  21  	 NUM_ROWS,
+16:30:13  22  	 LAST_ANALYZED,
+16:30:13  23  	 DEGREE,
+16:30:13  24  	 PARTITIONED,
+16:30:13  25  	 BUFFER_POOL,
+16:30:13  26  	 USER_STATS
+16:30:13  27  from
+16:30:13  28  	 dba_indexes
+16:30:13  29  where
+16:30:13  30  	 table_owner='&&v_table_owner' and
+16:30:13  31  	 table_name='&&v_table_name'
+16:30:13  32  order by
+16:30:13  33  	 UNIQUENESS desc,
+16:30:13  34  	 TABLE_OWNER,
+16:30:13  35  	 TABLE_NAME,
+16:30:13  36  	 OWNER,
+16:30:13  37  	 INDEX_NAME
+16:30:13  38  /
+old  30:    table_owner='&&v_table_owner' and
+new  30:    table_owner='HR' and
+old  31:    table_name='&&v_table_name'
+new  31:    table_name='PARTITION1'
+
+TABLE_OWNER		       TABLE_NAME		      TABLE_TYPE  OWNER 			 INDEX_NAME
+------------------------------ ------------------------------ ----------- ------------------------------ ------------------------------
+INDEX_TYPE		    UNIQUENES COMPRESS TABLESPACE_NAME		      PCT_INCREASE   PCT_FREE LOG     BLEVEL LEAF_BLOCKS DISTINCT_KEYS
+--------------------------- --------- -------- ------------------------------ ------------ ---------- --- ---------- ----------- -------------
+AVG_LEAF_BLOCKS_PER_KEY AVG_DATA_BLOCKS_PER_KEY CLUSTERING_FACTOR STATUS     NUM_ROWS LAST_ANALYZED	  DEGREE				   PAR BUFFER_
+----------------------- ----------------------- ----------------- -------- ---------- ------------------- ---------------------------------------- --- -------
+USE
+---
+HR			       PARTITION1		      TABLE	  HR				 PARTITION1_IDX
+NORMAL			    NONUNIQUE DISABLED									   0	      19	     1
+		      1 		      1 	       19 N/A		   19 11/10/2011 16:30:11 1					   YES DEFAULT
+NO
+
+
+1 row selected.
+
+Elapsed: 00:00:00.01
+16:30:13 SYS@orcl> 
+16:30:13 SYS@orcl> select
+16:30:13   2  	 OWNER,
+16:30:13   3  	 SEGMENT_NAME,
+16:30:13   4  	 PARTITION_NAME,
+16:30:13   5  	 SEGMENT_TYPE,
+16:30:13   6  	 TABLESPACE_NAME,
+16:30:13   7  	 BUFFER_POOL,
+16:30:13   8  	 BYTES/1048576 BYTES_MB
+16:30:13   9  from
+16:30:13  10  	 dba_segments
+16:30:13  11  where
+16:30:13  12  	 owner='&&v_table_owner' and
+16:30:13  13  	(segment_name='&&v_table_name' or
+16:30:13  14  	 segment_name in
+16:30:13  15  	   (select index_name
+16:30:13  16  	    from dba_indexes
+16:30:13  17  	    where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:13  18  	)
+16:30:13  19  order by
+16:30:13  20  	 OWNER,
+16:30:13  21  	 SEGMENT_NAME,
+16:30:13  22  	 PARTITION_NAME
+16:30:13  23  /
+old  12:    owner='&&v_table_owner' and
+new  12:    owner='HR' and
+old  13:   (segment_name='&&v_table_name' or
+new  13:   (segment_name='PARTITION1' or
+old  17:       where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+new  17:       where table_owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+HR			       PARTITION1									 SALES_1
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_10
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_11
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_12
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_13
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_14
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_15
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_16
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_17
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_18
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_19
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_2
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_20
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_3
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_4
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_5
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_6
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_7
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_8
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_9
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1									 SALES_FUTURE
+TABLE PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_1
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_10
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_11
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_12
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_13
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_14
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_15
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_16
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+OWNER			       SEGMENT_NAME									 PARTITION_NAME
+------------------------------ --------------------------------------------------------------------------------- ------------------------------
+SEGMENT_TYPE	   TABLESPACE_NAME		  BUFFER_   BYTES_MB
+------------------ ------------------------------ ------- ----------
+
+HR			       PARTITION1_IDX									 SALES_17
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_18
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_19
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_2
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_20
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_3
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_4
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_5
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_6
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_7
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_8
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_9
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+HR			       PARTITION1_IDX									 SALES_FUTURE
+INDEX PARTITION    PARTITION1			  DEFAULT      .0625
+
+
+42 rows selected.
+
+Elapsed: 00:00:00.25
+16:30:14 SYS@orcl> 
+16:30:14 SYS@orcl> select
+16:30:14   2  	 OWNER,
+16:30:14   3  	 SEGMENT_NAME,
+16:30:14   4  	 CEIL(SUM(BYTES)/1048576) BYTES_MB
+16:30:14   5  from
+16:30:14   6  	 dba_segments
+16:30:14   7  where
+16:30:14   8  	 owner='&&v_table_owner' and
+16:30:14   9  	(segment_name='&&v_table_name' or
+16:30:14  10  	 segment_name in
+16:30:14  11  	   (select index_name
+16:30:14  12  	    from dba_indexes
+16:30:14  13  	    where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:14  14  	)
+16:30:14  15  group by rollup
+16:30:14  16  	(OWNER,
+16:30:14  17  	 SEGMENT_NAME)
+16:30:14  18  order by
+16:30:14  19  	 OWNER,
+16:30:14  20  	 SEGMENT_NAME
+16:30:14  21  /
+old   8:    owner='&&v_table_owner' and
+new   8:    owner='HR' and
+old   9:   (segment_name='&&v_table_name' or
+new   9:   (segment_name='PARTITION1' or
+old  13:       where table_owner='&&v_table_owner' and table_name='&&v_table_name')
+new  13:       where table_owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									   BYTES_MB
+------------------------------ --------------------------------------------------------------------------------- ----------
+HR			       PARTITION1										  2
+HR			       PARTITION1_IDX										  2
+HR															  3
+															  3
+
+4 rows selected.
+
+Elapsed: 00:00:00.12
+16:30:14 SYS@orcl> 
+16:30:14 SYS@orcl> select
+16:30:14   2  	 OWNER,
+16:30:14   3  	 SEGMENT_NAME,
+16:30:14   4  	 CEIL(SUM(BYTES)/1048576) BYTES_MB
+16:30:14   5  from
+16:30:14   6  	 dba_segments
+16:30:14   7  where
+16:30:14   8  	 owner='&&v_table_owner' and
+16:30:14   9  	(segment_name='&&v_table_name' or
+16:30:14  10  	 segment_name in
+16:30:14  11  	   (select segment_name
+16:30:14  12  	    from dba_lobs
+16:30:14  13  	    where owner='&&v_table_owner' and table_name='&&v_table_name')
+16:30:14  14  	)
+16:30:14  15  group by rollup
+16:30:14  16  	(OWNER,
+16:30:14  17  	 SEGMENT_NAME)
+16:30:14  18  order by
+16:30:14  19  	 OWNER,
+16:30:14  20  	 SEGMENT_NAME
+16:30:14  21  /
+old   8:    owner='&&v_table_owner' and
+new   8:    owner='HR' and
+old   9:   (segment_name='&&v_table_name' or
+new   9:   (segment_name='PARTITION1' or
+old  13:       where owner='&&v_table_owner' and table_name='&&v_table_name')
+new  13:       where owner='HR' and table_name='PARTITION1')
+
+OWNER			       SEGMENT_NAME									   BYTES_MB
+------------------------------ --------------------------------------------------------------------------------- ----------
+HR			       PARTITION1										  2
+HR															  2
+															  2
+
+3 rows selected.
+
+Elapsed: 00:00:00.46
+16:30:14 SYS@orcl> 
+16:30:14 SYS@orcl> 
+16:30:14 SYS@orcl> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+ 
+SQL*Plus standard error file follows.
+Complete at Thu Nov 10 16:30:14 CST 2011
